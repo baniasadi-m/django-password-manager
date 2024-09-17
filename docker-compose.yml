@@ -9,9 +9,11 @@ networks:
 
 volumes:
   mysql_data:
-    name: mysql_data
+    name: pwm_mysql_data
     driver: local
-
+  app_media:
+    name: pwm_mysql_data
+    driver: local
 services:
   app:
     build:
@@ -32,8 +34,8 @@ services:
         max-file: "50"
     ports:
       - "${PWM_PUBLISH_PORT}:8080"
-    # volumes:
-    #   - app_data:/var/www/html
+    volumes:
+      - app_media:/app/media
     env_file:
       - .env
     environment:
