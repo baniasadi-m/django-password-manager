@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-b5#-chd28v*!1x(efuvw0zo0f(wmyr%lt2%&2ap@7_e$%^_qs9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(environ.get('DJANGO_DEBUG','1')))
 
-ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1']
+ALLOWED_HOSTS = ['localhost','0.0.0.0','127.0.0.1']
 
 
 # Application definition
@@ -78,11 +78,11 @@ DATABASES = {
     
     'default': {
         'ENGINE': 'django.db.backends.mysql', 
-        'NAME': environ.get("VDI_MYSQL_DB","panel"),
-        'USER': environ.get("VDI_MYSQL_USER","panel"),
-        'PASSWORD': environ.get("VDI_MYSQL_PASSWORD","panel"),
-        'HOST': environ.get("VDI_MYSQL_HOST","172.17.0.2") ,   # Or an IP Address that your DB is hosted on
-        'PORT': environ.get("VDI_MYSQL_PORT","3306") ,
+        'NAME': environ.get("DB_DATABASE","pwmdb"),
+        'USER': environ.get("DB_USER","pwmuser"),
+        'PASSWORD': environ.get("DB_PASSWORD","dfrgfdtgtrghtr"),
+        'HOST': environ.get("DB_CONTAINER_NAME","192.168.220.2") ,   # Or an IP Address that your DB is hosted on
+        'PORT': environ.get("DB_PORT","3306") ,
     }
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',

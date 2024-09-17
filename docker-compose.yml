@@ -6,6 +6,12 @@ networks:
      config:
        - subnet: 192.168.220.0/24
          gateway: 192.168.220.1
+
+volumes:
+  mysql_data:
+    name: mysql_data
+    driver: local
+
 services:
   app:
     build:
@@ -13,7 +19,6 @@ services:
       dockerfile: Dockerfile
     image: ${PWM_IMAGE}:${PWM_IMAGE_TAG}
     container_name: ${PWM_CONTAINER_NAME}
-    command: python manage.py runserver 0.0.0.0:8000
     healthcheck:
       test: ["CMD", "curl","-L","http://localhost:8000"]
       interval: 5s
@@ -26,7 +31,7 @@ services:
         max-size: "500k"
         max-file: "50"
     ports:
-      - "${PWM_PUBLISH_PORT}:8000"
+      - "${PWM_PUBLISH_PORT}:8080"
     # volumes:
     #   - app_data:/var/www/html
     env_file:
@@ -50,7 +55,7 @@ services:
     container_name: ${DB_CONTAINER_NAME}
     restart: always
     volumes: 
-      - ./mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     env_file:
       - .env
     environment:

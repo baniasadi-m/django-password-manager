@@ -1,20 +1,19 @@
-from os import environ
-from vdiManager.settings import Config
+from os import cpu_count
 """Gunicorn *development* config file"""
 
 # Django WSGI application path in pattern MODULE_NAME:VARIABLE_NAME
-wsgi_app = "vdiManager.wsgi:application"
+wsgi_app = "core.wsgi:application"
 # The granularity of Error log outputs
 loglevel = "debug"
 # The number of worker processes for handling requests
-workers = 4
+workers = int(cpu_count())
 # The socket to bind
-bind = Config.GUNICORN_BIND
+bind = '0.0.0.0:8000'
 # Restart workers when code changes (development only!)
 reload = False
 # Write access and error info to /var/log
-accesslog = Config.GUNICORN_ACCESS_LOG
-errorlog = Config.GUNICORN_ERROR_LOG
+accesslog = '/var/log/pwm.access.log'
+errorlog = '/var/log/pwm.error.log'
 # Redirect stdout/stderr to log file
 capture_output = True
 # PID file so you can easily fetch process ID
