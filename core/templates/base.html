@@ -37,10 +37,10 @@
         <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="{% url 'vdiApp:dashboard' %}" class="nav-link">داشبورد</a>
+        <a href="{% url 'pwm:dashboard' %}" class="nav-link">داشبورد</a>
       </li>
     </ul>
-    <form action="{% url 'vdiApp:search' %}" method="GET" class="form-inline ml-3">
+    <form action="{% url 'pwm:search' %}" method="GET" class="form-inline ml-3">
       <div class="input-group input-group-sm">
         <input class="form-control form-control-navbar" id="id_q" type="text" placeholder="جستجو" aria-label="Search" name="q" value="">
       </div>
@@ -53,13 +53,7 @@
         {% now "H:i" %}
       </span>
     </div>
-    <div style="margin-left:15px"></div>
-    <div>
-      <span>تاریخ : </span>
-      <span style="color:#333333;direction:rtl;margin-right: 10px;" class="date-now">
-                {{current_datetime|to_jalali:'%Y/%m/%d'}}           
-      </span>
-    </div>
+
     <div style="margin-left:15px"></div>
     <div>
       <span>IP : </span>
@@ -85,7 +79,7 @@
   {% block sidebar %}
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
-      <a href="{% url 'vdiApp:dashboard' %}" class="brand-link">
+      <a href="{% url 'pwm:dashboard' %}" class="brand-link">
         <img src="{% static 'assets/img/favicon32.ico' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
              style="opacity: .8">
         <span class="brand-text font-weight-light"> میزکار مجازی (VDI)</span>
@@ -102,7 +96,7 @@
             <a href="#" class="d-block">کاربر {% block username %}
 
               {% if request.user.is_authenticated %}
-                {{ request.user.username }}
+                {{ request.user }}
            
               {% endif %}
            

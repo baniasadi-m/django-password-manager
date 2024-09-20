@@ -146,3 +146,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # user manager config
 AUTH_USER_MODEL = "accounts.User"
+
+
+LOGIN_URL = "pwm:login"
+LOGIN_REDIRECT_URL = "pwm:dashboard"
+LOGOUT_REDIRECT_URL = LOGIN_URL

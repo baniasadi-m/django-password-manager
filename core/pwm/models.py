@@ -1,7 +1,38 @@
 from django.db import models
-
+from django.core.exceptions import ValidationError
 # Create your models here.
 
+class LicenseInfo(models.Model):
+    class Meta:
+        verbose_name = "لایسنس"
+        verbose_name_plural = "لایسنس سامانه"
+    company_short_name = models.CharField(blank=False, max_length=100,verbose_name="نام کوتاه سازمان")
+    company_name = models.CharField(blank=True, max_length=100,verbose_name="نام سازمان")
+    api_enabled = models.BooleanField(blank=True,default=False)
+    limit_user = models.IntegerField(verbose_name="تعداد کاربر مجاز")
+    expired_at = models.DateTimeField(blank=False, verbose_name="تاریخ انقضا")
+    latest_check = models.DateTimeField(blank=False,auto_now_add=True,verbose_name='آخرین چک')
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and LicenseInfo.objects.exists():
+            raise ValidationError("You can only have one License instance.")
+        return super().save(*args, **kwargs)
+
+
+class WorkingHours(models.Model):
+    class Meta:
+        verbose_name = "ساعت کاری"
+        verbose_name_plural = "ساعت کاری سامانه"
+    start_time = models.TimeField()  # Start of working hours
+    end_time = models.TimeField()    # End of working hours
+    weekdays = models.CharField(max_length=13, help_text="Comma-separated list of weekdays (e.g., '0,1,2,3,4' for Monday to Friday)")  # Days of the week
+    def save(self, *args, **kwargs):
+        if not self.pk and WorkingHours.objects.exists():
+            raise ValidationError("You can only have one WorkingHours instance.")
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Working hours: {self.start_time} - {self.end_time}, Weekdays: {self.weekdays}"
 
 class WinServer(models.Model):
     class Meta:
@@ -19,3 +50,7 @@ class WinServer(models.Model):
     is_ldap = models.BooleanField(default=False,verbose_name="LDAP")
     created_at = models.DateTimeField(auto_now_add=True, max_length=100,verbose_name="تاریخ ایجاد سرور")
     updated_at = models.DateTimeField(auto_now=True, max_length=100,verbose_name="آخرین بروزرسانی")
+    def __str__(self) :
+        return self.name
+    
+    

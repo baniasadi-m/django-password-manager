@@ -18,7 +18,7 @@ class Profile(models.Model):
     description = models.TextField(blank=False,default='Description',verbose_name='توضیحات')
     created_date = models.DateTimeField(auto_now_add=True,verbose_name='تاریخ ایجاد')
     updated_date = models.DateTimeField(auto_now=True,verbose_name='آخرین بروزرسانی')
-    server = models.ForeignKey('pwm.WinServer',blank=True,on_delete=models.DO_NOTHING,verbose_name='سرور')
+    server = models.ForeignKey('pwm.WinServer',blank=True,null=True,on_delete=models.DO_NOTHING,verbose_name='سرور')
     ldap_win_user = models.CharField(blank=False,default='ldap-user',max_length=20,unique=True,verbose_name='LDAP user')
     local_win_user = models.CharField(blank=False,default='local-user',max_length=20,unique=True,verbose_name='Local user')
 
