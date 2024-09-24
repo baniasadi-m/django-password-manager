@@ -28,7 +28,7 @@
 <div class="row">
   <div class="col-lg-3 col-6">
     <!-- small box -->
-    <div class="small-box bg-info">
+    {% comment %} <div class="small-box bg-info">
       <div class="inner">
         <h3>{{today_created}}</h3>
 
@@ -86,46 +86,30 @@
     </div>
   </div>
   <!-- ./col -->
-</div>
+</div> {% endcomment %}
 <div class="row mb-6">
 
   <div class="col-lg-8 col-sm-12 m-auto">
     <div class="card card-info">
        <div class="card-header">
-          <h3 class="card-title mb-0" style="float: right;">گزارش  </h3>
+          <h3 class="card-title mb-0" style="float: right;">پروفایل  </h3>
        </div>
        <div class="card-body">
-          <table class="table table-bordered" style="text-align: center;">
-             <thead>
-                <tr>
-                   
-                   <th colspan="1">تعداد میزکار ایجاد شده (ماه جاری)</th>
-                   
-                   <th colspan="1">تعداد سرور</th>
-                   <th colspan="1">تعداد کاربران آنلاین</th>
-                </tr>
-             </thead>
-             <tbody>
-                <tr>
-                  <ul>
-                  {% comment %} {% for attr in profile %} {% endcomment %}
-                  <li>{{ profile.nid }} </li>
-                  <li>{{ profile.user }} </li>
-                  <li>{{ profile.mobile }} </li>
-                  <li>{{ profile.server }} </li>
+        <ul>
+          {% comment %} {% for attr in profile %} {% endcomment %}
+          <li>{{ profile.nid }} </li>
+          <li>{{ profile.user }} </li>
+          <li>{{ profile.mobile }} </li>
+          <li>{{ profile.server }} </li>
+          <li>{{ profile.first_name }} </li>
+          <li>{{ profile.last_name }} </li>
+          <li>{{ profile.win_user }} </li>
+          <li> <img src="{% get_media_prefix %}{{profile.image}}"></li>
 
-                 
-                     {% comment %} {% endfor %} {% endcomment %}
-                  </ul>
-                   <td>{{monthly_created}}</td>
-                   
-                   <td>{{type_counts}}</td>
-                   
-                   <td>{{online_users}}</td>
-                </tr>
-
-             </tbody>
-          </table>
+         
+             {% comment %} {% endfor %} {% endcomment %}
+          </ul>
+          
        </div>
     </div>
     <hr>

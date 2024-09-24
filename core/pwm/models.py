@@ -53,4 +53,15 @@ class WinServer(models.Model):
     def __str__(self) :
         return self.name
     
-    
+class WinUser(models.Model):
+    class Meta:
+        verbose_name = "کاربری ویندوز "
+        verbose_name_plural = "مشخصات کاربری ویندوز"
+        
+    name = models.CharField(blank=True,unique=True, max_length=255,verbose_name="نام اکانت")
+    server = models.ForeignKey(WinServer,blank=True,on_delete=models.DO_NOTHING,verbose_name="نام سرور")
+    is_ldap = models.BooleanField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, max_length=100,verbose_name="تاریخ ایجاد ")
+    updated_at = models.DateTimeField(auto_now=True, max_length=100,verbose_name="آخرین بروزرسانی")
+    def __str__(self) :
+        return self.name

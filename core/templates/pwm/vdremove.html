@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block contentwraper %}
+<h1 class="m-0 text-dark"> میزکار</h1>
+{% endblock%}
+
+{% block maincontent %}
+<div class="conter-wraper">
+
+{% if messages %}
+  <div class="row">
+  <div class="col-sm-6 col-sm-offset-3">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="True">&times;</span>
+        </button>
+          <h1 ><p style="color: blue">{{ message }}</p></h1>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+{% endif %}
+<div class="panel-body center-screen">
+
+  <div class="col-md-6 inf-content">
+  <strong>حذف میزکار</strong><br>
+  <div class="table-responsive">
+
+  <table class="table table-user-information">
+  <tbody>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-phone text-primary"></span>
+  نام
+  </strong>
+  </td>
+  <td class="text-primary">
+    {{myvd.vd_container_name }}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-link  text-primary"></span>
+  ایمیج
+  </strong>
+  </td>
+  <td class="text-primary">
+      {{myvd.vd_container_img}}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-cloud text-primary"></span>
+  تحویل گیرنده
+  </strong>
+  </td>
+  <td class="text-primary">
+      {{myvd.vd_owner }}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-link text-primary"></span>
+  شناسه میزکار
+  </strong>
+  </td>
+  <td class="text-primary">
+      {{myvd.vd_container_id }}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-user  text-primary"></span>
+  ایجاد شده توسط
+  </strong>
+  </td>
+  <td class="text-primary">
+      {{myvd.vd_created_by}}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-lock text-primary"></span>
+  سرور
+  </strong>
+  </td>
+  <td class="text-primary">
+      {{myvd.vd_owner.owner_server.server_name}} - {{myvd.vd_owner.owner_server.server_ip}}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-calendar text-primary"></span>
+  پسورد VNC
+  </strong>
+  </td>
+  <td class="text-primary" id="vncpass" onclick="copyText('vncpass')">
+      {{myvd.vd_container_vncpass}}
+  </td>
+  </tr>
+  <tr>
+  <td>
+  <strong>
+  <span class="glyphicon glyphicon-calendar text-primary"></span>
+  پسورد فایل منیجر
+  </strong>
+  </td>
+  <td class="text-primary" id="fbpass" onclick="copyText('fbpass')">
+      {{myvd.vd_browser_pass}}
+
+  </td>
+
+  </tr>
+  <tr>
+    <td>
+    <strong>
+    <span class="glyphicon glyphicon-calendar text-primary"></span>
+    کاربری میزکار
+    </strong>
+    </td>
+    <td class="text-primary">
+      {{myvd.vd_container_user}}
+    
+    </td>
+    </tr>
+    <tr>
+      <td>
+      <strong>
+      <span class="glyphicon glyphicon-calendar text-primary"></span>
+      کلمه عبور میزکار
+      </strong>
+      </td>
+      <td class="text-primary" id="vncpass" onclick="copyText('vncpass')">
+          {{myvd.vd_container_password}}
+      </td>
+      </tr>
+      <tr>
+        <td>
+        <strong>
+        <span class="glyphicon glyphicon-calendar text-primary"></span>
+        شماره نامه
+        </strong>
+        </td>
+        <td class="text-primary">
+          {{myvd.vd_letter_number}}
+        </td>
+        </tr>
+        <tr>
+          <td>
+          <strong>
+          <span class="glyphicon glyphicon-calendar text-primary"></span>
+          توضیحات
+          </strong>
+          </td>
+          <td class="text-primary">
+              {{myvd.vd_description }}
+          </td>
+          </tr>
+          <tr>
+            <td>
+            <strong>
+            <span class="glyphicon glyphicon-calendar text-primary"></span>
+            تاریخ ایجاد
+            </strong>
+            </td>
+            <td class="text-primary">
+              {{myvd.vd_created_at|to_jalali:'%Y/%m/%d'}}
+            </td>
+            </tr>
+            <tr>
+              <td>
+              <strong>
+              <span class="glyphicon glyphicon-calendar text-primary"></span>
+              تاریخ انقضا
+              </strong>
+              </td>
+              <td class="text-primary">
+                  {{myvd.vd_expired_at|to_jalali:'%Y/%m/%d'}}
+              </td>
+              </tr>
+          </tbody>
+  </table>
+  </div>
+  </div>
+
+</div>
+{% endblock %}

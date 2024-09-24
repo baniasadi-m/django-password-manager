@@ -11,6 +11,7 @@ def license_check():
         latest_check = float(LicenseInfo.objects.values('latest_check').first()['latest_check'].timestamp())
         limit_users = int(LicenseInfo.objects.values('limit_user').first()['limit_user'])
         expire_datetime = float(LicenseInfo.objects.values('expired_at').first()['expired_at'].timestamp())
+        
         users = get_user_model()
         current_users = int(users.objects.all().count())
         print(current_datetime,latest_check,abs(current_datetime - latest_check),current_datetime < latest_check)
@@ -53,3 +54,35 @@ class WorkingHoursMixin:
         return True,HttpResponse("work fine")
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+    
+def user_allowed(request,usergroup=[]):
+    for g in usergroup:
+        if request.user.groups.filter(name=f"{g}").exists():
+            return True
+    return False
+
+def server_status(server_url):
+    import requests
+    headers={'Content-Type': 'application/json'}
+    jwt_token = "jwt_gen_token()"
+    headers.update(
+        {
+            'jwt': f"{jwt_token}"
+        }
+    )
+    try:
+        r = requests.get(url=server_url,headers=headers,verify=False,timeout=2).json()
+        if int(r['status']) == 1:
+            return True
+    except Exception as e:
+        print(e)
+        return False

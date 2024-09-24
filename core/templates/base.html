@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>سامانه مدیریت  کاربری</title>
-  <link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
+  <link rel="shortcut icon" type="image/png" href="{% static 'assets/img/pwm.png' %}"/>
   <!-- Tell the browser to be responsive to screen width -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Font Awesome -->
@@ -80,9 +80,9 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="{% url 'pwm:dashboard' %}" class="brand-link">
-        <img src="{% static 'assets/img/favicon32.ico' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+        <img src="{% static 'assets/img/pwm_bg.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
              style="opacity: .8">
-        <span class="brand-text font-weight-light"> میزکار مجازی (VDI)</span>
+        <span class="brand-text font-weight-light"> مدیریت کاربری</span>
       </a>
   
       <!-- Sidebar -->
@@ -113,7 +113,7 @@
               <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-list"></i>
                 <p>
-                  میزکار مجازی
+                   کلمه عبور
                   <i class="right fas fa-angle-left"></i>
                 </p>
               </a>
@@ -121,14 +121,26 @@
                 <li class="nav-item">
                   <a href="/vdcreate/" class="nav-link active">
                     <i class="fas fa-edit nav-icon"></i>
-                    <p>ایجاد میزکار</p>
+                    <p>بازنشانی</p>
                   </a>
                   <li class="nav-item">
-                      <a href="/vdlist/" class="nav-link active">
+                      <a href="#" class="nav-link active">
                         <i class="fas fa-list nav-icon"></i>
-                        <p>لیست میزکار</p>
+                        <p> احرازهویت موبایل</p>
                       </a>
                     </li>
+                    <li class="nav-item">
+                      <a href="#" class="nav-link active">
+                        <i class="fas fa-list nav-icon"></i>
+                        <p>احرازهویت ایمیل</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="/accounts/totp_generate/" class="nav-link active">
+                        <i class="fas fa-list nav-icon"></i>
+                        <p>احرازهویت گوگل</p>
+                      </a>
+                    </li>                    
                 </li>
               </ul>
             </li>
@@ -141,24 +153,13 @@
               <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-list"></i>
                 <p>
-                پروفایل ها
+                پروفایل 
                   <i class="right fas fa-angle-left"></i>
                 </p>
               </a>
               <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="/profilecreate/" class="nav-link active">
-                    <i class="fas fa-edit nav-icon"></i>
-                    <p>ایجاد پروفایل</p>
-                  </a>
-                  <li class="nav-item">
-                      <a href="/profilelist/" class="nav-link active">
-                        <i class="fas fa-list nav-icon"></i>
-                        <p>لیست پروفایل</p>
-                      </a>
-                    </li>
                     <li class="nav-item">
-                      <a href="/profileedit/" class="nav-link active">
+                      <a href="/edit_profile/" class="nav-link active">
                         <i class="fas fa-list nav-icon"></i>
                         <p>ویرایش پروفایل</p>
                       </a>

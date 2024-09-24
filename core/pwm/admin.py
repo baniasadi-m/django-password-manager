@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import WinServer,LicenseInfo,WorkingHours
+from .models import WinServer,LicenseInfo,WorkingHours,WinUser
 # Register your models here.
 
 
@@ -11,7 +11,10 @@ class LicenseInfoAdmin(admin.ModelAdmin):
    
 class WorkingHoursAdmin(admin.ModelAdmin):
     list_display = ['start_time','end_time','weekdays']
-     
+
+class WinUserAdmin(admin.ModelAdmin):
+    list_display = ['name','server','is_ldap']   
 admin.site.register(WorkingHours,WorkingHoursAdmin)
-admin.site.register(LicenseInfo,LicenseInfoAdmin)
 admin.site.register(WinServer,WinServerAdmin)
+admin.site.register(WinUser,WinUserAdmin)
+admin.site.register(LicenseInfo,LicenseInfoAdmin)
