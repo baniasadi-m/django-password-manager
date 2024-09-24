@@ -20,7 +20,8 @@ class Profile(models.Model):
     created_date = models.DateTimeField(auto_now_add=True,verbose_name='تاریخ ایجاد')
     updated_date = models.DateTimeField(auto_now=True,verbose_name='آخرین بروزرسانی')
     server = models.ForeignKey('pwm.WinServer',blank=True,null=True,on_delete=models.DO_NOTHING,verbose_name='سرور')
-    win_user = models.ForeignKey('pwm.WinUser',blank=True,null=True,on_delete=models.DO_NOTHING,verbose_name='اکانت ویندوز')
+    win_local_account = models.CharField(max_length=50,blank=True,verbose_name='اکانت local')
+    win_ldap_account = models.CharField(max_length=50,blank=True,verbose_name='اکانت ldap')
     
     def __str__(self):
         return self.user.email

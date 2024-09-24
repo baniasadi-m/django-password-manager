@@ -82,7 +82,8 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-
+def win_account_reset_password(server,account,new_password,account_type='local'):
+    return True
     
 def user_allowed(request,usergroup=[]):
     for g in usergroup:

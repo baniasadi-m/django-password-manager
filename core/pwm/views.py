@@ -3,15 +3,18 @@ from django.forms import BaseModelForm
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.generic.base import TemplateView,RedirectView
 from django.views.generic import View,FormView,CreateView,ListView,DetailView
-from .forms import LoginForm, UserRegisterForm, UserForm, ProfileForm
+from .forms import LoginForm, UserRegisterForm, UserForm, ProfileForm, ResetPasswordForm
 from accounts.models.profiles import Profile
 from accounts.models.users import UserTOTP,User
+from .models import WinServer
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .utils import license_check
-from .utils import WorkingHoursMixin
+from .utils import license_check,win_account_reset_password
+from .utils import WorkingHoursMixin, VerifiedUserMixin
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from accounts.totp_utils import verify_totp_code
 import pyotp
 import qrcode
 from io import BytesIO
@@ -19,11 +22,7 @@ from io import BytesIO
 # Create your views here.
 
 
-
-def index(request):
-    return HttpResponse('Hello index fbv')
-
-class EditProfileView(LoginRequiredMixin,WorkingHoursMixin,View):
+class EditProfileView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,View):
     template_name='pwm/profileedit.html'
     success_url = reverse_lazy('pwm:dashboard')
     
@@ -58,19 +57,24 @@ class EditProfileView(LoginRequiredMixin,WorkingHoursMixin,View):
             'profile_form': profile_form
         })
 
+class IndexView(WorkingHoursMixin,RedirectView):
+    permanent = False
+    query_string = False
+    pattern_name = 'pwm:dashboard'
 
-class IndexView(WorkingHoursMixin,View):
-    template_name = 'pwm/login.html'
-    form_class = LoginForm
+
+# class IndexView(WorkingHoursMixin,View):
+#     template_name = 'pwm/login.html'
+#     form_class = LoginForm
     
-    def dispatch(self, request, *args, **kwargs):
-        if not self.check_working_hours():
-            return HttpResponseForbidden("The application is closed at the moment.")
-        return super().dispatch(request, *args, **kwargs)
+#     def dispatch(self, request, *args, **kwargs):
+#         if not self.check_working_hours():
+#             return HttpResponseForbidden("The application is closed at the moment.")
+#         return super().dispatch(request, *args, **kwargs)
     
-    def get(self, request):
-        form = self.form_class
-        return render(request, self.template_name,context={'form': form})
+#     def get(self, request):
+#         form = self.form_class
+#         return render(request, self.template_name,context={'form': form})
 
 class UserRegisterView(WorkingHoursMixin,CreateView):
     template_name = 'pwm/register.html'
@@ -110,27 +114,69 @@ class ServerDetailView(LoginRequiredMixin,WorkingHoursMixin,DetailView):
     pass
 
 
+class ResetPassSuccessView(LoginRequiredMixin, VerifiedUserMixin, WorkingHoursMixin,TemplateView):
+    template_name = "pwm/resetpass_success.html"
+    
+class ResetPassView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,View):
+    success_url=reverse_lazy('pwm:resetpass_success')
+    template_name = 'pwm/resetpass.html'
+    # form_class=ServerSelectionForm
+    def get(self,request,*args, **kwargs):
+        # Initial data for the forms
+        # print(request.profile)
+        profile = get_object_or_404(UserTOTP,user=request.user)
+        print(profile.totp_secret)
+        user_form = ResetPasswordForm
+        
+        # print(profile_form)
+        return render(request, self.template_name, {
+            'form': user_form,
+        })
+   
+    def post(self,request,*args, **kwargs):
+        # Handling form submissions
+        request_data = {k:v[0] for k,v in dict(request.POST).items()}
+        print(request.user,request_data)
+        profile = get_object_or_404(Profile,user=request.user)
+        if request_data['password1'] != request_data['password2']:
+            messages.add_message(request,messages.ERROR,'password confirm error')
+            return  redirect('pwm:resetpass')
+        
+        otp_user = get_object_or_404(UserTOTP,user=request.user)
+        if not verify_totp_code(secret=otp_user.totp_secret, code=request_data['otp']):
+            messages.add_message(request,messages.ERROR,'Otp verify error')
+            return  redirect('pwm:resetpass') 
+        
+        server = get_object_or_404(WinServer,pk=request_data['server'])
+        if server.is_ldap:
+            if not profile.win_ldap_account == request_data['account']:
+                messages.add_message(request,messages.ERROR,'your server/user entered not valid')
+                return  redirect('pwm:resetpass')
+        else:
+            if not profile.win_local_account == request_data['account']:
+                messages.add_message(request,messages.ERROR,'your server/user entered not valid')
+                return  redirect('pwm:resetpass')                  
+        if win_account_reset_password():
+            return redirect(self.success_url)
+                   
+        # user_form = UserForm(request.POST, instance=request.user)
+        # profile_form = ProfileForm(data=request.POST,files=request.FILES, instance=profile)
+        # print(f"profile validation is: {profile_form.is_valid()}")
 
-class GenerateQRCodeView(LoginRequiredMixin,WorkingHoursMixin, View):
-    def get(self, request):
-        user =  get_object_or_404(User,user=request.user)
-        # Check if the user has a TOTP secret; if not, generate one
-        try:
-            user_totp = user.usertotp
-        except UserTOTP.DoesNotExist:
-            secret = pyotp.random_base32()
-            user_totp = UserTOTP.objects.create(user=user, totp_secret=secret)
+        # if  profile_form.is_valid():
+        #     # user_form.save()
+        #     print(f"profile save")
+        #     profile_form.save()
+        
 
-        # Generate TOTP URI for Google Authenticator
-        totp = pyotp.TOTP(user_totp.totp_secret)
-        totp_uri = totp.provisioning_uri(user.email, issuer_name="AqrPWM")
+        # return render(request, self.template_name, {
+        #     'user_form': user_form,
+        #     'profile_form': profile_form
+        # })
 
-        # Generate a QR code from the TOTP URI
-        qr = qrcode.make(totp_uri)
-        buffer = BytesIO()
-        qr.save(buffer)
-        buffer.seek(0)
-        return HttpResponse(buffer, content_type="image/png")
+
+
+
 
 
 
