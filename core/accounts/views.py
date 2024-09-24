@@ -12,7 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .totp_utils import generate_totp_secret, verify_totp_code, generate_qr_code
 from .models import UserTOTP
 from django.core.files.base import File
-from pwm.utils import WorkingHoursMixin
+from pwm.utils import WorkingHoursMixin, VerifiedUserMixin
 import base64
 
 
@@ -32,7 +32,7 @@ def test(request):
 
 from django.contrib.auth import get_user_model
 
-class GenerateTOTPView(LoginRequiredMixin, WorkingHoursMixin, FormView):
+class GenerateTOTPView(LoginRequiredMixin,VerifiedUserMixin, WorkingHoursMixin, FormView):
     template_name = 'accounts/totp_generate.html'
     form_class = EnableTOTPForm
     success_url = reverse_lazy('accounts:totp_show')
@@ -54,7 +54,7 @@ class GenerateTOTPView(LoginRequiredMixin, WorkingHoursMixin, FormView):
 
         
 
-class TOTPShowView(LoginRequiredMixin, WorkingHoursMixin, TemplateView):
+class TOTPShowView(LoginRequiredMixin, VerifiedUserMixin, WorkingHoursMixin, TemplateView):
     template_name = 'accounts/totp_show.html'
     
     def get_context_data(self, **kwargs):
@@ -76,7 +76,7 @@ class TOTPShowView(LoginRequiredMixin, WorkingHoursMixin, TemplateView):
     #     user_profile.save()
     #     return super().form_valid(form)
     
-class VerifyTOTPView(LoginRequiredMixin, WorkingHoursMixin, FormView):
+class VerifyTOTPView(LoginRequiredMixin, VerifiedUserMixin, WorkingHoursMixin, FormView):
     template_name = 'accounts/totp_verify.html'
     form_class = VerifyTOTPForm
     success_url = reverse_lazy('accounts:totp_success')
@@ -101,5 +101,5 @@ class VerifyTOTPView(LoginRequiredMixin, WorkingHoursMixin, FormView):
     # def post(self,request,*args, **kwargs):
     #     print(request.user)
     
-class TOTPSuccessView(LoginRequiredMixin, WorkingHoursMixin, TemplateView):
+class TOTPSuccessView(LoginRequiredMixin, VerifiedUserMixin, WorkingHoursMixin, TemplateView):
     template_name = 'accounts/totp_success.html'

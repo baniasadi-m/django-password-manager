@@ -2,7 +2,7 @@ from .models import LicenseInfo,WorkingHours
 from django.contrib.auth import get_user_model
 from datetime import datetime
 from django.http import HttpResponseForbidden
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import redirect,render,HttpResponse
 def license_check():
     from datetime import datetime
     print("Checking License....")
@@ -54,6 +54,26 @@ class WorkingHoursMixin:
         return True,HttpResponse("work fine")
 
 
+class VerifiedUserMixin:
+    """
+    Mixin to check if the user is verified.
+    If not verified, it redirects to a forbidden page or any other desired URL.
+    """
+    def dispatch(self, request, *args, **kwargs):
+        if license_check() == False:
+            return False,HttpResponseForbidden("Your License Expired.")
+        # Check if the user is authenticated and verified
+        if not request.user.is_authenticated:
+            # If the user is not authenticated, redirect to the login page
+            return redirect('pwm:dashboard')
+
+        if not request.user.is_verified:
+            # If the user is not verified, return a forbidden response or redirect
+            return HttpResponseForbidden("You must verify your account to access this page.")
+        
+        # If everything is fine, proceed with the request
+        return super().dispatch(request, *args, **kwargs)
+    
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
