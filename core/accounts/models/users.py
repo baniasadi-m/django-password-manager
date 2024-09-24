@@ -6,6 +6,10 @@ from django.contrib.auth.models import (
 )
 from django.utils.translation import gettext_lazy as _
 
+from typing import Optional
+import pyotp
+import qrcode
+import qrcode.image.svg
 
 class UserManager(BaseUserManager):
     """
@@ -62,3 +66,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+
+
+class UserTOTP(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    totp_secret = models.CharField(max_length=100, blank=True, null=True)
+    # qr_code_image = models.ImageField(upload_to='qrcodes/', blank=True, null=True)  
+    qr_code_image = models.BinaryField(null=True, blank=True)
+    
+    def __str__(self):
+        return f'{self.user.email} TOTP Secret'

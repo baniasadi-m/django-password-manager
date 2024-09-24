@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block maincontent %}
+
+
+{% if form.errors %}
+<div class="error">{{ form.errors }}</div>
+{% endif %}
+<img src="data:image/png;base64,{{ qr_code_image }}" alt="QR Code">
+
+
+<a href="{% url 'accounts:totp_verify' %}">Verify</a>
+
+
+
+
+
+
+{% endblock %}

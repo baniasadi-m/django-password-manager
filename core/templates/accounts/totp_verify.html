@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block maincontent %}
+
+
+{% if form.errors %}
+<div class="error">{{ form.errors }}</div>
+{% endif %}
+{% comment %} <img src="{{ qr_code_image }}" alt="QR Code"> {% endcomment %}
+<form method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<button type="submit">Verify TOTP</button>
+</form>
+
+
+
+{% endblock %}

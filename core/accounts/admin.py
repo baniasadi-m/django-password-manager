@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Profile
+from .models import User, Profile,UserTOTP
 
 
 class CustomUserAdmin(UserAdmin):
@@ -62,6 +62,10 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
-
+class UserTOTPAdmin(admin.ModelAdmin):
+    
+    list_display=['user','totp_secret','qr_code_image']
+    
 admin.site.register(Profile)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(UserTOTP, UserTOTPAdmin)
