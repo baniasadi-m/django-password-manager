@@ -10,7 +10,7 @@ from .models import WinServer
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy,reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .utils import license_check,win_account_reset_password,generate_otp,send_sms
+from .utils import license_check,generate_otp,send_sms,ad_search_and_reset_password
 from .utils import WorkingHoursMixin, VerifiedUserMixin
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -190,12 +190,15 @@ class UserRegisterView(WorkingHoursMixin,CreateView):
     form_class = UserRegisterForm
     success_message = "Your profile was created successfully"
     def dispatch(self, request, *args, **kwargs):
+        print("FLDSKFKDFKSDFKSDKFKSDKSDFKSDKFSDKFKSDKFSDKFSDK")
+
         if not self.check_working_hours():
             return HttpResponseForbidden("The application is closed at the moment.")
         return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
         user = form.save()
+        print("FLDSKFKDFKSDFKSDKFKSDKSDFKSDKFSDKFKSDKFSDKFSDK")
         self.request.session['user_id'] = user.id
         return super().form_valid(form)
 
@@ -297,7 +300,7 @@ class ResetPassView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,View)
             if not profile.win_local_account == request_data['account']:
                 messages.add_message(request,messages.ERROR,'your server/user entered not valid')
                 return  redirect('pwm:resetpass')                  
-        if win_account_reset_password():
+        if ad_search_and_reset_password():
             return redirect(self.success_url)
                    
         # user_form = UserForm(request.POST, instance=request.user)

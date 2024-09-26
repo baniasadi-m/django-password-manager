@@ -299,11 +299,7 @@ def generate_otp(number_of_digits):
     otp = ''.join(choice(string.digits) for _ in range(number_of_digits))
     return otp
 
-def win_account_reset_password(server,account,new_password,account_type='local'):
-    return True
-
 def send_sms(_from,to,msg):
-    pass
     return True
     
 def user_allowed(request,usergroup=[]):
