@@ -13,7 +13,7 @@ class Profile(models.Model):
     nid = models.CharField(blank=True,unique=True, max_length=20,verbose_name="کد ملی")
     first_name = models.CharField(blank=True,max_length=250,verbose_name="نام")
     last_name = models.CharField(blank=True,max_length=250,verbose_name="نام خانوادگی")
-    mobile = models.CharField(blank=True,max_length=15,verbose_name="شماره موبایل")
+    mobile = models.CharField(blank=True,unique=True,max_length=15,verbose_name="شماره موبایل")
     # mobile_verified = models.BooleanField(default=False)
     image = models.ImageField(blank=True, null=True,verbose_name='عکس کاربر')
     description = models.TextField(blank=True,verbose_name='توضیحات')

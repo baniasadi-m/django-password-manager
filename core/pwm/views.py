@@ -3,13 +3,14 @@ from django.forms import BaseModelForm
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.generic.base import TemplateView,RedirectView
 from django.views.generic import View,FormView,CreateView,ListView,DetailView
-from .forms import LoginForm, UserRegisterForm, UserForm, ProfileForm, ResetPasswordForm
+from .forms import OTPVerificationForm, UserRegisterForm, UserForm, ProfileForm, ResetPasswordForm, MobileForm
 from accounts.models.profiles import Profile
 from accounts.models.users import UserTOTP,User
 from .models import WinServer
-from django.urls import reverse_lazy
+from django.contrib.auth import get_user_model
+from django.urls import reverse_lazy,reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .utils import license_check,win_account_reset_password
+from .utils import license_check,win_account_reset_password,generate_otp,send_sms
 from .utils import WorkingHoursMixin, VerifiedUserMixin
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -19,9 +20,116 @@ import pyotp
 import qrcode
 from io import BytesIO
 
+
 # Create your views here.
 
+class MobileCheckView(LoginRequiredMixin,WorkingHoursMixin,View):
+    template_name = "pwm/mobile_check.html"
+    # form_class = MobileForm
+    success_url = reverse_lazy('pwm:verifymobile')
+    def get(self, request, *args, **kwargs):
+        # profile = get_object_or_404(Profile,user=request.user)
+        user_form = MobileForm(instance=request.user)
+        context = {
+            'form': user_form
+        }
+        return render(request=request,template_name=self.template_name,context=context)
+    
+    def post(self, request, *args, **kwargs):
+        request_data = {k:v[0] for k,v in dict(request.POST).items()}
+        print("POST CHECK VIEW",request_data)
+        
+        profile = get_object_or_404(Profile,user=request.user)
+        print(profile,profile.mobile,request_data['mobile'])
+        
+        print("VERIFICATION MOBILE IS:",profile.mobile == request_data['mobile'])
 
+        if profile.mobile == request_data['mobile']:
+           # profile = profile_form.save()
+           otp = str(generate_otp(5))
+           if send_sms(_from='50005',to=f"{profile.mobile}",msg = otp):
+               
+               request.session['sms_otp'] = otp
+               print(request.session)
+               return redirect('pwm:verifymobile')
+        
+        messages.add_message(request,messages.ERROR,'Mobile Not valid')
+        return  redirect('pwm:dashboard')
+    
+    
+class MobileVerifyView(LoginRequiredMixin,WorkingHoursMixin,View):
+    template_name = "pwm/mobile_verify.html"
+    # form_class = OTPVerificationForm
+    # success_url = reverse_lazy('pwm:dashboard')
+    def get(self, request, *args, **kwargs):
+        # profile = get_object_or_404(Profile,user=request.user)
+        otp_form = OTPVerificationForm()
+        context = {
+            'form': otp_form
+        }
+        print(request.session.get('sms_otp'))
+        return render(request=request,template_name=self.template_name,context=context)
+    
+    def post(self, request, *args, **kwargs):
+        profile = get_object_or_404(Profile,user=request.user)
+        # profile_form = ProfileForm(data=request.POST,instance=profile)
+        request_data = {k:v[0] for k,v in dict(request.POST).items()}
+        print("Verifi View",profile,request_data)
+        generated_otp = request.session.get('sms_otp')
+        print(str(generated_otp),str(request_data['otp']))
+
+        if str(generated_otp) == request_data['otp']:
+            profile.user.is_verified = True
+            profile.user.save()
+            request.session.pop('sms_otp')
+            messages.add_message(request,messages.SUCCESS,'Profile Verified Successfully')
+            return redirect('pwm:dashboard')
+        
+        messages.add_message(request,messages.ERROR,'form inputs not valid')
+        return  redirect('pwm:dashboard')    
+    
+    
+    
+    # def get(self,request,*args, **kwargs):
+    #     profile = get_object_or_404(Profile,user=request.user)
+    #     user_form = MobileForm(instance=request.user)
+    #     # Get the phone number from the form
+    #     # phone_number = form.cleaned_data.get('mobile')
+        
+    #     # Generate a random 6-digit OTP
+    #     otp = generate_otp(5)
+        
+    #     # Save the OTP and phone number in the session
+    #     self.request.session['phone_number'] = phone_number
+    #     self.request.session['otp'] = str(otp)
+
+        # Save to database (optional)
+        # PhoneVerification.objects.update_or_create(
+        #     phone_number=phone_number,
+        #     defaults={'otp': otp, 'verified': False}
+        # )
+
+        # Send OTP via SMS using Twilio or another SMS service
+        # self.send_sms_otp(phone_number, otp)
+
+        # Redirect to OTP verification page
+        # return super().form_valid(form)
+    
+    # def send_sms_otp(self, phone_number, otp):
+    #     # Twilio credentials from settings
+    #     account_sid = settings.TWILIO_ACCOUNT_SID
+    #     auth_token = settings.TWILIO_AUTH_TOKEN
+    #     twilio_phone_number = settings.TWILIO_PHONE_NUMBER
+
+    #     # Create Twilio client
+    #     client = Client(account_sid, auth_token)
+
+    #     # Send the SMS
+    #     message = client.messages.create(
+    #         body=f"Your verification code is {otp}",
+    #         from_=twilio_phone_number,
+    #         to=phone_number
+    #     )
 class EditProfileView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,View):
     template_name='pwm/profileedit.html'
     success_url = reverse_lazy('pwm:dashboard')
@@ -77,8 +185,8 @@ class IndexView(WorkingHoursMixin,RedirectView):
 #         return render(request, self.template_name,context={'form': form})
 
 class UserRegisterView(WorkingHoursMixin,CreateView):
-    template_name = 'pwm/register.html'
-    success_url = reverse_lazy('pwm:dashboard')
+    template_name = 'pwm/register_user.html'
+    success_url = reverse_lazy('pwm:register_profile')
     form_class = UserRegisterForm
     success_message = "Your profile was created successfully"
     def dispatch(self, request, *args, **kwargs):
@@ -87,8 +195,41 @@ class UserRegisterView(WorkingHoursMixin,CreateView):
         return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
-        form.save()
+        user = form.save()
+        self.request.session['user_id'] = user.id
         return super().form_valid(form)
+
+class ProfileRegisterView(WorkingHoursMixin,View):
+    template_name = 'pwm/register_profile.html'
+    success_url = reverse_lazy('pwm:login')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.check_working_hours():
+            return HttpResponseForbidden("The application is closed at the moment.")
+        return super().dispatch(request, *args, **kwargs)
+ 
+    def get(self, request, *args, **kwargs):
+        user_id = request.session.get('user_id')
+        profile = get_object_or_404(Profile,user=user_id)
+        profile_form = ProfileForm(instance=profile)
+        context = {
+            'profile_form': profile_form
+        }
+        return render(request=request,template_name=self.template_name,context=context)
+    
+    def post(self, request, *args, **kwargs):
+        user_id = request.session.get('user_id')
+        profile = get_object_or_404(Profile,user=user_id)
+        profile_form = ProfileForm(data=request.POST,instance=profile)
+
+        if profile_form.is_valid():
+            profile = profile_form.save()
+            request.session.pop('user_id')
+            return redirect('pwm:login')
+        
+        messages.add_message(request,messages.ERROR,'form inputs not valid')
+        return  redirect('pwm:register')
+
 
 class DashboardView(LoginRequiredMixin,WorkingHoursMixin,ListView):
     model= Profile

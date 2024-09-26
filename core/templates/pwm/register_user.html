@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>ورود</title>
+	<title>Register</title>
 	<link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
 	<link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
 	<link href="{% static 'assets/css/bootstrap-5.0.0-beta2.min.css' %}" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
@@ -39,21 +39,15 @@
 					</div>
 					<div class="card shadow-lg">
 
-
-
 						<div class="card-body p-5">
-							<h1 class="fs-4 card-title fw-bold mb-4">Login</h1>
+							<h1 class="fs-4 card-title fw-bold mb-4">Register</h1>
 							<form method="POST" >
 								{% csrf_token %}
 						
-									{{form.as_p}}
-							
-					
-							
-					
+								{{form.as_p}}	
 
 									<button type="submit" class="btn btn-primary ms-auto">
-										Login
+										Next
 									</button>
 								</div>
 

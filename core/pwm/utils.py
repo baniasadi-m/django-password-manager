@@ -82,7 +82,17 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+def generate_otp(number_of_digits):
+    from random import choice
+    import string
+    otp = ''.join(choice(string.digits) for _ in range(number_of_digits))
+    return otp
+
 def win_account_reset_password(server,account,new_password,account_type='local'):
+    return True
+
+def send_sms(_from,to,msg):
+    pass
     return True
     
 def user_allowed(request,usergroup=[]):
@@ -107,3 +117,4 @@ def server_status(server_url):
     except Exception as e:
         print(e)
         return False
+    
