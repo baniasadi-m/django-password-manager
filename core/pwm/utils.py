@@ -3,6 +3,217 @@ from django.contrib.auth import get_user_model
 from datetime import datetime
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect,render,HttpResponse
+
+
+import ldap3
+from ldap3 import Server, Connection, ALL, SUBTREE, MODIFY_REPLACE
+import ssl
+import logging
+
+import winrm
+
+def reset_local_user_password(remote_host, admin_user, admin_password, target_user, new_password):
+    """
+    Resets the password for a local user on a remote Windows machine.
+
+    :param remote_host: IP or hostname of the remote Windows machine
+    :param username: Admin username for the remote machine
+    :param password: Admin password for the remote machine
+    :param target_user: Local username to reset the password for
+    :param new_password: New password for the local user
+    :return: None
+    """
+    winrm_url = f'http://{remote_host}:5985/wsman'
+
+    # Initialize the WinRM session
+    session = winrm.Session(winrm_url, auth=(admin_user, admin_password))
+
+    # PowerShell command to reset the password
+    ps_script = f"""
+    
+    $username = "{target_user}"
+    $new_password = ConvertTo-SecureString "{new_password}" -AsPlainText -Force
+    $user_account = Get-WmiObject -Class Win32_UserAccount -Filter "Name='$username'"
+    $user_account.Rename("$username")
+    $user_account.SetPassword($new_password)
+    """
+
+    # Execute the command
+    result = session.run_ps(ps_script)
+
+    if result.status_code == 0:
+        message = f"Password for user '{target_user}' has been reset successfully."
+        return True,message
+    else:
+        message = f"Failed to reset password for user '{target_user}': {result.std_err.decode()}"
+        return False,message
+# Configure logging
+logging.basicConfig(level=logging.ERROR)  # Adjust as needed for debugging
+
+def ad_search_and_reset_password(ldap_server, domain, base_dn, admin_user, admin_password,  username, new_password):
+    try:
+        # Create SSL context for secure LDAPS connection
+        ssl_ctx = ssl.create_default_context()
+
+        # Connect to the Active Directory server
+        server = Server(ldap_server, use_ssl=True, get_info=ALL)
+        
+        # Authenticate with admin credentials
+        conn = Connection(server, user=f'{admin_user}@{domain}', password=admin_password, auto_bind=True)
+        
+        # Search for the user by sAMAccountName (username)
+        search_filter = f'(sAMAccountName={username})'
+        
+        conn.search(
+            search_base=base_dn,
+            search_filter=search_filter,
+            search_scope=SUBTREE,
+            attributes=['distinguishedName']
+        )
+
+        # If no user is found, return False
+        if not conn.entries:
+            logging.error(f"User {username} not found.")
+            return False
+
+        # Get the user's distinguished name (DN)
+        user_dn = conn.entries[0].distinguishedName.value
+        print(f"User {username} found with DN: {user_dn}")
+
+        # Encode the new password in UTF-16LE format with quotes
+        unicode_password = ('"' + new_password + '"').encode('utf-16-le')
+        try:
+
+        # Reset the password by modifying the unicodePwd attribute
+            conn.modify(user_dn, {'unicodePwd': [(MODIFY_REPLACE, [unicode_password])]})
+        except Exception as e:
+            print(e)
+            exit(1)
+        # Check if the operation was successful
+        if conn.result['result'] == 0:
+            print(f"Password reset successfully for {username}.")
+            return True
+        else:
+            logging.error(f"Failed to reset password for {username}: {conn.result}")
+            return False
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return False
+
+    finally:
+        if conn:
+            conn.unbind()
+            
+            
+            
+def ad_get_user_account_status(ldap_url, domain, search_base, admin_user, admin_password, username):
+    """
+    Retrieves the status of an Active Directory user account (password expired, account locked, account disabled).
+
+    :param ldap_url: LDAP URL of the domain controller
+    :param domain: Domain name
+    :param search_base: Base DN for LDAP search, e.g., 'DC=domain,DC=com'
+    :param username: sAMAccountName of the user to check
+    :param admin_user: Admin username with domain
+    :param admin_password: Admin password
+    :return: Dictionary with status fields: 'password_expired', 'account_locked', 'account_disabled'
+    """
+    try:
+        
+    # Connect to the LDAP server
+        server = ldap3.Server(ldap_url)
+        conn = ldap3.Connection(server, user=f'{admin_user}@{domain}', password= admin_password, auto_bind=True)
+
+        # Define the search filter
+        search_filter = f'(sAMAccountName={username})'
+
+        # Perform the search
+        conn.search(search_base, search_filter, attributes=['pwdLastSet', 'lockoutTime', 'userAccountControl'])
+
+        # Check the results
+        if len(conn.entries) == 1:
+            user = conn.entries[0]
+
+            # Interpret attributes
+            pwd_last_set = user.pwdLastSet.value
+            lockout_time = user.lockoutTime.value
+            user_account_control = user.userAccountControl.value
+
+            # Determine statuses
+            password_expired = pwd_last_set == '0'
+            account_locked = lockout_time and lockout_time != '0'
+            account_disabled = bool(int(user_account_control) & 0x0002)
+
+            return {
+            'password_expired': password_expired,
+            'account_locked': account_locked,
+            'account_disabled': account_disabled
+            }
+        else:
+            raise ValueError("User does not exist or multiple accounts found.")
+
+    except ldap3.LDAPExceptionError as e:
+        print(f"LDAP error: {e}")
+        return None
+    finally:
+        conn.unbind()
+        
+def ad_enable_and_unlock_user(ldap_url, domain, search_base, admin_user, admin_password, username):
+    """
+    Enables and unlocks an Active Directory user account.
+
+    :param domain_controller: LDAP URL of the domain controller
+    :param domain: Domain name
+    :param search_base: Base DN for LDAP search, e.g., 'DC=domain,DC=com'
+    :param username: sAMAccountName of the user to enable and unlock
+    :param admin_user: Admin username with domain
+    :param admin_password: Admin password
+    :return: None
+    """
+    try:
+        # Connect to the LDAP server
+        server = ldap3.Server(ldap_url)
+        conn = ldap3.Connection(server, user=f'{admin_user}@{domain}', password=admin_password, auto_bind=True)
+
+        # Define the search filter
+        search_filter = f'(sAMAccountName={username})'
+
+        # Perform the search to get the user's DN and current userAccountControl value
+        conn.search(search_base, search_filter, attributes=['distinguishedName', 'userAccountControl'])
+
+        # Check the results
+        if len(conn.entries) == 1:
+            user_dn = conn.entries[0].distinguishedName.value
+            user_account_control = conn.entries[0].userAccountControl.value
+
+            # Convert userAccountControl to an integer
+            user_account_control = int(user_account_control)
+
+            # Clear the ACCOUNTDISABLE bit (0x0002) and LOCKOUT bit (0x0010)
+            user_account_control = user_account_control & ~0x0002 & ~0x0010
+
+            # Modify the user's userAccountControl attribute
+            conn.modify(user_dn, {'userAccountControl': [(ldap3.MODIFY_REPLACE, [user_account_control])]})
+
+            if conn.result['result'] == 0:
+                message = f"The account '{username}' has been enabled and unlocked successfully."
+                return True,message
+            else:
+                message = f"Failed to modify the account '{username}': {conn.result}"
+                return False,message
+        else:
+            raise ValueError("User does not exist or multiple accounts found.")
+
+    except ldap3.LDAPExceptionError as e:
+        print(f"LDAP error: {e}")
+        message = f"Exeption Error: {e}"
+        return False,message
+    finally:
+        conn.unbind()
+
+
+
 def license_check():
     from datetime import datetime
     print("Checking License....")

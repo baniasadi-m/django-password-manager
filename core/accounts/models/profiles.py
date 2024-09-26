@@ -9,7 +9,7 @@ class Profile(models.Model):
     Profile class for each user which is being created to hold the information
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,verbose_name="ایمیل")
     nid = models.CharField(blank=True,unique=True, max_length=20,verbose_name="کد ملی")
     first_name = models.CharField(blank=True,max_length=250,verbose_name="نام")
     last_name = models.CharField(blank=True,max_length=250,verbose_name="نام خانوادگی")
