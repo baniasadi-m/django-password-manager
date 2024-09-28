@@ -3,14 +3,14 @@ from django.forms import BaseModelForm
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.generic.base import TemplateView,RedirectView
 from django.views.generic import View,FormView,CreateView,ListView,DetailView
-from .forms import OTPVerificationForm, UserRegisterForm, UserForm, ProfileForm, ResetPasswordForm, MobileForm
+from .forms import OTPVerificationForm, ProfileUserForm, UserRegisterForm, UserForm, ProfileForm, ResetPasswordForm, MobileForm, UserStatusForm
 from accounts.models.profiles import Profile
 from accounts.models.users import UserTOTP,User
 from .models import WinServer
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy,reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .utils import license_check,generate_otp,send_sms,ad_search_and_reset_password
+from .utils import license_check,generate_otp,send_sms,ad_search_and_reset_password, ad_enable_and_unlock_user,ad_get_user_account_status,reset_local_user_password
 from .utils import WorkingHoursMixin, VerifiedUserMixin
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -256,8 +256,30 @@ class DashboardView(LoginRequiredMixin,WorkingHoursMixin,ListView):
 
 class ServerDetailView(LoginRequiredMixin,WorkingHoursMixin,DetailView):
     pass
+class UserStatusView(LoginRequiredMixin,WorkingHoursMixin,View):
+    success_url=reverse_lazy('pwm:resetpass_success')
+    template_name = 'pwm/user_status.html'
+    context_object_name = 'profile'
+    
+    def dispatch(self, request, *args, **kwargs):
 
-
+        if self.check_working_hours()[0] == False:
+            return self.check_working_hours()[1]
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self,request,*args, **kwargs):
+        profile = get_object_or_404(Profile,user=request.user)
+        profile_form = ProfileUserForm(instance=profile)
+        server = get_object_or_404(WinServer,is_ldap=True)
+        server_form  = UserStatusForm(instance=server)
+        # ad_get_user_account_status(ldap_server=f"ldaps://{server.ip}:{server.port}",domain= server.ldap_domain,
+        #                                     admin_user=server.proxy_user,admin_password=server.proxy_password,base_dn=f"{server.base_dn}",
+        #                                     username=f"{request_data['account']}",new_password=request_data['password1']
+        #                                     )
+        context ={'form':server_form,
+                  'profile' : profile_form
+                  }
+        return render(request,self.template_name,context=context)
 class ResetPassSuccessView(LoginRequiredMixin, VerifiedUserMixin, WorkingHoursMixin,TemplateView):
     template_name = "pwm/resetpass_success.html"
     
@@ -292,16 +314,41 @@ class ResetPassView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,View)
             return  redirect('pwm:resetpass') 
         
         server = get_object_or_404(WinServer,pk=request_data['server'])
+        if not server.is_enabled:
+            messages.add_message(request,messages.ERROR,'server disabled')
+            return  redirect('pwm:resetpass')
         if server.is_ldap:
             if not profile.win_ldap_account == request_data['account']:
                 messages.add_message(request,messages.ERROR,'your server/user entered not valid')
                 return  redirect('pwm:resetpass')
+            reset_pass = ad_search_and_reset_password(ldap_server=f"ldaps://{server.ip}:{server.port}",domain= server.ldap_domain,
+                                            admin_user=server.proxy_user,admin_password=server.proxy_password,base_dn=f"{server.base_dn}",
+                                            username=f"{request_data['account']}",new_password=request_data['password1']
+                                            )
+            enable = ad_enable_and_unlock_user(ldap_url=f"ldaps://{server.ip}:{server.port}",domain= server.ldap_domain,
+                                            admin_user=server.proxy_user,admin_password=server.proxy_password,
+                                            search_base=f"{server.base_dn}",
+                                            username=f"{request_data['account']}"
+                                            )
+            if reset_pass and enable[0]:
+                messages.add_message(request=request,level=messages.SUCCESS,message='Reset Password Successful')
+                return redirect(self.success_url)
+            else:
+                messages.add_message(request=request,level=messages.ERROR,message='Reset Password Failed')
+                return redirect(self.success_url)         
         else:
             if not profile.win_local_account == request_data['account']:
                 messages.add_message(request,messages.ERROR,'your server/user entered not valid')
-                return  redirect('pwm:resetpass')                  
-        if ad_search_and_reset_password():
-            return redirect(self.success_url)
+                return  redirect('pwm:resetpass')   
+            
+            reset_pass = reset_local_user_password(remote_host=server.ip,admin_user=server.proxy_user,admin_password=server.proxy_password,target_user=f"{request_data['account']}",new_password=f"{request_data['password1']}")               
+            if reset_pass[0]:
+                messages.add_message(request=request,level=messages.SUCCESS,message='Reset Password Successful')
+                return redirect(self.success_url)
+            else:
+                messages.add_message(request,messages.ERROR,'Reset Password Failed')
+                return  redirect('pwm:resetpass')                
+
                    
         # user_form = UserForm(request.POST, instance=request.user)
         # profile_form = ProfileForm(data=request.POST,files=request.FILES, instance=profile)

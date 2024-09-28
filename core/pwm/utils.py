@@ -14,6 +14,7 @@ import winrm
 
 def reset_local_user_password(remote_host, admin_user, admin_password, target_user, new_password):
     """
+    Run in window cmd: winrm set winrm/config/service @{AllowUnencrypted="true"}
     Resets the password for a local user on a remote Windows machine.
 
     :param remote_host: IP or hostname of the remote Windows machine
@@ -29,14 +30,13 @@ def reset_local_user_password(remote_host, admin_user, admin_password, target_us
     session = winrm.Session(winrm_url, auth=(admin_user, admin_password))
 
     # PowerShell command to reset the password
-    ps_script = f"""
-    
+    ps_script = f'''
     $username = "{target_user}"
     $new_password = ConvertTo-SecureString "{new_password}" -AsPlainText -Force
-    $user_account = Get-WmiObject -Class Win32_UserAccount -Filter "Name='$username'"
-    $user_account.Rename("$username")
-    $user_account.SetPassword($new_password)
-    """
+    Set-LocalUser -Name $username -Password $new_password
+    '''
+
+    print(ps_script)
 
     # Execute the command
     result = session.run_ps(ps_script)

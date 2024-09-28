@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from accounts.models import Profile
+from pwm.models import WinServer
 # from pwm.models import ServerSelection
 
 class LoginForm(forms.Form):
@@ -56,6 +57,17 @@ class ResetPasswordForm(forms.ModelForm):
     password2 = forms.CharField(widget=forms.PasswordInput(),label='تکرار پسورد جدید')
     otp = forms.CharField(max_length=6)
         
-    
-
+class ProfileUserForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['user']        
+    def __init__(self, *args, **kwargs):
+        super(ProfileForm, self).__init__(*args, **kwargs)
+        self.fields['user'].disabled = True    
+class UserStatusForm(forms.ModelForm):
+    class Meta:
+        model = WinServer
+        fields = ['name']
+        
+    account = forms.CharField(max_length=20,label='کاربری')
     

@@ -20,6 +20,7 @@ urlpatterns = [
     path('resetpass_success/', views.ResetPassSuccessView.as_view(), name='resetpass_success'),
     path('checkMobile/', views.MobileCheckView.as_view(), name='checkmobile'),
     path('verifyMobile/', views.MobileVerifyView.as_view(), name='verifymobile'),
+    path('userStatus/', views.UserStatusView.as_view(), name='userstatus'),
     
     # path('edit_profile/', EditProfileView.as_view(), name='edit_profile'),
     # path('edit_profile/', EditProfileView.as_view(), name='edit_profile'),
