@@ -40,13 +40,13 @@
         <a href="{% url 'pwm:dashboard' %}" class="nav-link">داشبورد</a>
       </li>
     </ul>
-    <form action="{% url 'pwm:search' %}" method="GET" class="form-inline ml-3">
+    {% comment %} <form action="{% url 'pwm:search' %}" method="GET" class="form-inline ml-3">
       <div class="input-group input-group-sm">
         <input class="form-control form-control-navbar" id="id_q" type="text" placeholder="جستجو" aria-label="Search" name="q" value="">
       </div>
       
 
-    </form>
+    </form> {% endcomment %}
     <div>
       <span>ساعت : </span>
       <span style="color:#333333;direction:rtl;margin-right: 10px;" class="date-now">
@@ -55,12 +55,12 @@
     </div>
 
     <div style="margin-left:15px"></div>
-    <div>
+    {% comment %} <div>
       <span>IP : </span>
       <span style="color:#333333;direction:rtl;margin-right: 10px;" class="date-now">
                 {{current_ip}}           
       </span>
-    </div>
+    </div> {% endcomment %}
 
     <ul class="navbar-nav mr-auto-navbav">
 
@@ -181,29 +181,7 @@
               </ul>
             </li>
         </nav>
-        <nav class="mt-2">
-          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-            <!-- Add icons to the links using the .nav-icon class
-                 with font-awesome or any other icon font library -->
-            <li class="nav-item has-treeview">
-              <a href="#" class="nav-link">
-                <i class="nav-icon fas fa-list"></i>
-                <p>
-                سرورها
-                  <i class="right fas fa-angle-left"></i>
-                </p>
-              </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="/serverlist/" class="nav-link active">
-                    <i class="fas fa-edit nav-icon"></i>
-                    <p>لیست سرور</p>
-                  </a>
-                  
-                </li>
-              </ul>
-            </li>
-        </nav>
+
         <!-- /.sidebar-menu -->
       </div>
       <!-- /.sidebar -->

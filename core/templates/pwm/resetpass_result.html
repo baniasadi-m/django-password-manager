@@ -2,8 +2,6 @@
 {% load static %}
 
 {% block maincontent %}
-
-
 {% if messages %}
 <div class="row">
 <div class="col-sm-6 col-sm-offset-3">
@@ -19,11 +17,5 @@
 
 </div>
 {% endif %}
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p}}
-    <button type="submit">بازنشانی</button>
-</form>
-
 
 {% endblock %}

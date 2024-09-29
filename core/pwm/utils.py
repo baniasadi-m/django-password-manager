@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from datetime import datetime
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect,render,HttpResponse
+from django.contrib.auth.mixins import AccessMixin
 
 
 import ldap3
@@ -145,7 +146,7 @@ def ad_get_user_account_status(ldap_url, domain, search_base, admin_user, admin_
             account_locked = lockout_time and lockout_time != '0'
             account_disabled = bool(int(user_account_control) & 0x0002)
 
-            return {
+            return True,{
             'password_expired': password_expired,
             'account_locked': account_locked,
             'account_disabled': account_disabled
@@ -234,6 +235,7 @@ def license_check():
     except Exception as e:
         print(e)
         return False
+        
 class WorkingHoursMixin:
     """
     Mixin to check if the current time is within working hours based on the database.
@@ -284,7 +286,7 @@ class VerifiedUserMixin:
         
         # If everything is fine, proceed with the request
         return super().dispatch(request, *args, **kwargs)
-    
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:

@@ -31,19 +31,26 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['user','nid', 'first_name', 'last_name',
-                  'mobile','win_local_account','win_ldap_account'
+                  'mobile','win_local_account','win_ldap_account',
+                  'server'
                   ]        
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
         self.fields['user'].disabled = True   
+        self.fields['nid'].disabled = True   
+        self.fields['mobile'].disabled = True   
+        self.fields['win_local_account'].disabled = True   
+        self.fields['win_ldap_account'].disabled = True   
+  
 
 class MobileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['mobile']        
-    def __init__(self, *args, **kwargs):
-        super(MobileForm, self).__init__(*args, **kwargs)
-        self.fields['mobile'].disabled = False
+    # def __init__(self, *args, **kwargs):
+    #     super(MobileForm, self).__init__(*args, **kwargs)
+        # self.fields['mobile'].queryset = self.instance.mobile
+        # self.fields['mobile'].disabled = False
         
 class OTPVerificationForm(forms.Form):
     otp = forms.CharField(max_length=6, required=True, label="Enter OTP")
@@ -64,10 +71,23 @@ class ProfileUserForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
         self.fields['user'].disabled = True    
+
 class UserStatusForm(forms.ModelForm):
     class Meta:
-        model = WinServer
-        fields = ['name']
+        model = Profile
+        fields = [
+                  'win_ldap_account',
+                  'server'
+                  ]     
+        # widgets = {
+        #     'server': forms.HiddenInput(),  # This will hide the field in the form
+        # }
+        # readonly_fields = [ 'server']
+    def __init__(self, *args, **kwargs):
+        super(UserStatusForm, self).__init__(*args, **kwargs)
+        self.fields['win_ldap_account'].widget.attrs['readonly'] = True 
+        self.fields['server'].queryset = self.instance.server.__class__.objects.filter(pk=self.instance.server.pk)
+        self.fields['server'].widget.attrs['readonly'] = True 
         
-    account = forms.CharField(max_length=20,label='کاربری')
-    
+
+        
