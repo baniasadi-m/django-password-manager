@@ -5,11 +5,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
-from typing import Optional
-import pyotp
-import qrcode
-import qrcode.image.svg
 
 class UserManager(BaseUserManager):
     """
@@ -77,3 +74,19 @@ class UserTOTP(models.Model):
     
     def __str__(self):
         return f'{self.user.email} TOTP Secret'
+
+
+
+class UserActivityLog(models.Model):
+    class Meta:
+        verbose_name = "گزارش "
+        verbose_name_plural = "گزارشات"
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
+    path = models.CharField(max_length=500)  # URL path accessed by the user
+    method = models.CharField(max_length=10)  # HTTP method (GET, POST, etc.)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)  # User's IP address
+    timestamp = models.DateTimeField(default=timezone.now)  # Time of the activity
+    action_description = models.TextField(null=True, blank=True)  # Description of the activity
+
+    def __str__(self):
+        return f"{self.user} - {self.action_description} on {self.timestamp}"

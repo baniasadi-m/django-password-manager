@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Profile,UserTOTP
+from .models import User, Profile,UserTOTP,UserActivityLog
 
 
 class CustomUserAdmin(UserAdmin):
@@ -65,7 +65,12 @@ class CustomUserAdmin(UserAdmin):
 class UserTOTPAdmin(admin.ModelAdmin):
     
     list_display=['user','totp_secret','qr_code_image']
-    
+
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'path', 'method', 'ip_address', 'timestamp', 'action_description')
+    list_filter = ('user', 'method', 'timestamp')
+    search_fields = ('user__username', 'path', 'action_description')
 admin.site.register(Profile)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserTOTP, UserTOTPAdmin)
+admin.site.register(UserActivityLog, UserActivityLogAdmin)
