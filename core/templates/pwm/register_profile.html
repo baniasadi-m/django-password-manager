@@ -6,81 +6,65 @@
 	<meta charset="utf-8">
 	<title>Register</title>
 	<link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
-	<link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
 	<link href="{% static 'assets/css/bootstrap-5.0.0-beta2.min.css' %}" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <style>
 	body {
 		margin: 0;
 		padding: 0;
-		background-image: url("{% static 'assets/img/bg-image.jpeg' %}");
+		background-image: url("{% static 'assets/img/XztdngjRmFS6xK2nNWp7Nm-1200-80.jpg' %}");
 		background-repeat: no-repeat;
 		background-size: cover;
 		background-attachment: fixed;
 		width: 100%;
-      	height: 100%;
+		height: 100%;
 	}
 
 	#id_captcha_1 {
-    max-width: 100px;
-    margin-top: 8px;
-}
-</style> 
+		max-width: 100px;
+		margin-top: 8px;
+	}
 
+	.card {
+		opacity: 0.95;
+	}
+
+	.form-control {
+		margin-bottom: 1rem;
+	}
+</style>
 
 <body>
 	<section class="h-100">
 		<div class="container h-100">
-			<div class="row justify-content-sm-center h-100">
-				<div class="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
+			<div class="row justify-content-sm-center align-items-center h-100">
+				<div class="col-xxl-4 col-xl-5 col-lg-6 col-md-8 col-sm-10">
 					<div class="text-center my-5">
-						
 						<img src="{% static 'assets/img/pwm.png' %}" alt="logo" width="100">
 					</div>
 					<div class="card shadow-lg">
-
 						<div class="card-body p-5">
-							<h1 class="fs-4 card-title fw-bold mb-4">Register</h1>
-							<form method="POST" >
+							<h1 class="fs-4 card-title fw-bold mb-4 text-center">Register</h1>
+							<form method="POST">
 								{% csrf_token %}
-						
-			
-								{{profile_form.as_p}}
-							
-					
-							
-					
-
-									<button type="submit" class="btn btn-primary ms-auto">
-										SignUp
-									</button>
+								{{ profile_form.as_p }}
+								<div class="d-grid">
+									<button type="submit" class="btn btn-primary">Sign Up</button>
 								</div>
-
 							</form>
 						</div>
-						<!-- <div class="card-footer py-3 border-0">
-							<div class="text-center">
-								Don't have an account? <a href="register.html" class="text-dark">Create One</a>
-							</div>
-						</div> -->
 					</div>
-					<!-- <div class="text-center mt-5 text-muted">
-					تمام حقوق این وبگاه متعلق به آستان قدس رضوی است
 
-					</div> -->
 					{% if messages %}
-					<div class="row">
-					<div class="text-center mt-5 text-muted">
+					<div class="mt-4">
 						{% for message in messages %}
-						<div class="alert alert-{{ message.tags }}" role="alert">
-						  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-							<span aria-hidden="True">&times;</span>
-						  </button>
-							<h1 ><p style="color: rgb(172, 84, 43)">{{ message }}</p></h1>
+						<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+							{{ message }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 						</div>
 						{% endfor %}
-					  </div>
-				  
 					</div>
 					{% endif %}
 				</div>
@@ -88,6 +72,6 @@
 		</div>
 	</section>
 
-	<!-- <script src="{% static 'assets/js/login.js' %}"></script> -->
+	<script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
 </body>
 </html>

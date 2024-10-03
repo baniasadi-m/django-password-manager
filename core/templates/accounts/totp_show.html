@@ -1,19 +1,41 @@
 {% extends 'base.html' %}
 {% load static %}
+
+
+
+{% block contentwraper %}
+
+{% endblock%}
 {% block maincontent %}
 
 
-{% if form.errors %}
-<div class="error">{{ form.errors }}</div>
-{% endif %}
-<img src="data:image/png;base64,{{ qr_code_image }}" alt="QR Code">
-
-
-<a href="{% url 'accounts:totp_verify' %}">Verify</a>
-
-
-
-
+<div class="container mt-5">
+    
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>There were some errors:</strong>
+        <ul>
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    
+    <div class="text-center">
+      <img src="data:image/png;base64,{{ qr_code_image }}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+      <p>Scan this QR code with your authenticator app.</p>
+    </div>
+    
+    <div class="text-center mt-4">
+      <a href="{% url 'accounts:totp_verify' %}" class="btn btn-primary">Verify</a>
+    </div>
+  </div>
 
 
 {% endblock %}

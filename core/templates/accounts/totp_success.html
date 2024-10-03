@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block maincontent %}
-
-
-<p>TOTP verification successful!</p>
-
+<div class="container mt-5 text-center">
+    <h2 class="text-success">TOTP Verification Successful!</h2>
+    <p>Your two-factor authentication setup is complete. You can now securely access your account.</p>
+    <a href="{% url 'pwm:dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
+</div>
 {% endblock %}

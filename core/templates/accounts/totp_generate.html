@@ -1,9 +1,37 @@
 {% extends 'base.html' %}
 {% load static %}
+
+{% block contentwraper %}
+
+{% endblock%}
+
 {% block maincontent %}
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Enable TOTP</button>
+  <div class="container mt-5">
+    <h2>Enable TOTP</h2>
+    <p>Please enter your details to enable Time-Based One-Time Password (TOTP) for enhanced security.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        {{ form.as_p }}
+      </div>
+      <button type="submit" class="btn btn-primary">Enable TOTP</button>
     </form>
+
+    {% if form.errors %}
+      <div class="alert alert-danger mt-3">
+        <strong>Please correct the following errors:</strong>
+        <ul>
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
 {% endblock %}

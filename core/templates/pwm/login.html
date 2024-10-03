@@ -1,4 +1,5 @@
 {% load static %}
+{% load custom_filters %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,82 +7,85 @@
 	<meta charset="utf-8">
 	<title>ورود</title>
 	<link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
-	<link rel="shortcut icon" type="image/png" href="{% static 'vdi.png' %}"/>
 	<link href="{% static 'assets/css/bootstrap-5.0.0-beta2.min.css' %}" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-image: url("{% static 'assets/img/XztdngjRmFS6xK2nNWp7Nm-1200-80.jpg' %}");
+			background-repeat: no-repeat;
+			background-size: cover;
+			background-attachment: fixed;
+			width: 100%;
+			height: 100%;
+		}
+		.card {
+			border-radius: 1rem;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		}
+		#id_captcha_1 {
+			max-width: 100px;
+			margin-top: 8px;
+		}
+		.btn-primary {
+			width: 100%;
+		}
+		@media (max-width: 768px) {
+			.card {
+				padding: 1.5rem;
+			}
+		}
+	</style>
 </head>
-<style>
-	body {
-		margin: 0;
-		padding: 0;
-		background-image: url("{% static 'assets/img/bg-image.jpeg' %}");
-		background-repeat: no-repeat;
-		background-size: cover;
-		background-attachment: fixed;
-		width: 100%;
-      	height: 100%;
-	}
-
-	#id_captcha_1 {
-    max-width: 100px;
-    margin-top: 8px;
-}
-</style> 
-
-
 <body>
 	<section class="h-100">
 		<div class="container h-100">
-			<div class="row justify-content-sm-center h-100">
-				<div class="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
-					<div class="text-center my-5">
-						
+			<div class="row justify-content-center align-items-center h-100">
+				<div class="col-lg-5 col-md-7 col-sm-9">
+					<div class="text-center mb-4">
 						<img src="{% static 'assets/img/pwm.png' %}" alt="logo" width="100">
 					</div>
 					<div class="card shadow-lg">
-
-
-
-						<div class="card-body p-5">
-							<h1 class="fs-4 card-title fw-bold mb-4">Login</h1>
-							<form method="POST" >
+						<div class="card-body p-4">
+							<h1 class="fs-4 card-title fw-bold mb-4 text-center">Login</h1>
+							<form method="POST">
 								{% csrf_token %}
-						
-									{{form.as_p}}
-							
-					
-							
-					
+								<!-- Manual form field rendering with Bootstrap classes -->
+								<div class="mb-3">
+									{{ form.username.label_tag }}
+									{{ form.username|add_class:"form-control" }}
+								</div>
+								<div class="mb-4">
+									{{ form.password.label_tag }}
+									{{ form.password|add_class:"form-control" }}
+								</div>
 
-									<button type="submit" class="btn btn-primary ms-auto">
+								<!-- Submit Button -->
+								<div class="d-grid mb-3">
+									<button type="submit" class="btn btn-primary">
 										Login
 									</button>
 								</div>
-
 							</form>
 						</div>
-						 <div class="card-footer py-3 border-0">
-							<div class="text-center">
-								Don't have an account? <a href="{% url 'pwm:register' %}" class="text-dark">Create One</a>
-							</div>
-						</div> 
-					</div>
-					<!-- <div class="text-center mt-5 text-muted">
-					تمام حقوق این وبگاه متعلق به آستان قدس رضوی است
 
-					</div> -->
+						<!-- Footer Link for Registration -->
+						<div class="card-footer text-center py-3 border-0">
+							<p>Don't have an account? <a href="{% url 'pwm:register' %}" class="text-dark">Create One</a></p>
+						</div>
+					</div>
+
+					<!-- Display Django messages with Bootstrap alerts -->
 					{% if messages %}
 					<div class="row">
-					<div class="text-center mt-5 text-muted">
-						{% for message in messages %}
-						<div class="alert alert-{{ message.tags }}" role="alert">
-						  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-							<span aria-hidden="True">&times;</span>
-						  </button>
-							<h1 ><p style="color: rgb(172, 84, 43)">{{ message }}</p></h1>
+						<div class="col-12 mt-4">
+							{% for message in messages %}
+							<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+								{{ message }}
+								<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+							</div>
+							{% endfor %}
 						</div>
-						{% endfor %}
-					  </div>
-				  
 					</div>
 					{% endif %}
 				</div>
@@ -89,6 +93,6 @@
 		</div>
 	</section>
 
-	<!-- <script src="{% static 'assets/js/login.js' %}"></script> -->
+	<script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
 </body>
 </html>
