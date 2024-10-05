@@ -32,7 +32,8 @@ SMS_URL = environ.get('SMS_URL','https://siagh-api.razavi.ir/api/SMS/SendMessage
 SMS_KEY= environ.get('SMS_KEY',"yf@c4ywn7MZjr2rs#ASk8HqwHqHH4yk3Kgmnf")
 SMS_USER= environ.get('SMS_USER','mfa')
 
-
+SESSION_COOKIE_AGE = 3600  # By default, sessions expire when the browser is closed if SESSION_EXPIRE_AT_BROWSER_CLOSE is True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Application definition
 
 INSTALLED_APPS = [
