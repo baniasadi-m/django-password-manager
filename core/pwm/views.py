@@ -3,7 +3,7 @@ from django.forms import BaseModelForm
 from django.shortcuts import render,HttpResponse,redirect
 from django.views.generic.base import TemplateView,RedirectView
 from django.views.generic import View,FormView,CreateView,ListView,DetailView
-from .forms import OTPVerificationForm, ProfileUserForm, UserRegisterForm, UserForm, ProfileForm, ResetPasswordForm, MobileForm, UserStatusForm
+from .forms import OTPVerificationForm, UserRegisterForm, UserForm, ProfileEditForm,ProfileRegisterForm, ResetPasswordForm, MobileForm, UserStatusForm
 from accounts.models.profiles import Profile
 from accounts.models.users import UserTOTP,User
 from .models import WinServer
@@ -50,12 +50,23 @@ class MobileCheckView(LoginRequiredMixin,WorkingHoursMixin,View):
         if profile.mobile == request_data['mobile']:
            # profile = profile_form.save()
            otp = str(generate_otp(5))
-           if send_sms(_from='50005',to=f"{profile.mobile}",msg = otp):
+           from django.conf import settings
+           key = settings.SMS_KEY[:-6]
+           msg=f"کد تایید: \n {otp} \n\n pwm"
+           
+           result = send_sms(url=settings.SMS_URL,apiuser=settings.SMS_USER,apikey=key,provider='negin-ertebat',
+                             destination=request_data['mobile'],message=msg, subject="PWM-OTP",
+                             description=f"{request.user},{request_data['mobile']}"
+                             )
+           if result['status'] == 200:
                
                request.session['sms_otp'] = otp
                print(request.session)
                return redirect('pwm:verifymobile')
-        
+           else:
+               print(result['status'])
+               messages.add_message(request,messages.ERROR,'SMS Sending Error')
+               return  redirect('pwm:dashboard')        
         messages.add_message(request,messages.ERROR,'Mobile Not valid')
         return  redirect('pwm:dashboard')
     
@@ -90,49 +101,7 @@ class MobileVerifyView(LoginRequiredMixin,WorkingHoursMixin,View):
         
         messages.add_message(request,messages.ERROR,'form inputs not valid')
         return  redirect('pwm:dashboard')    
-    
-    
-    
-    # def get(self,request,*args, **kwargs):
-    #     profile = get_object_or_404(Profile,user=request.user)
-    #     user_form = MobileForm(instance=request.user)
-    #     # Get the phone number from the form
-    #     # phone_number = form.cleaned_data.get('mobile')
-        
-    #     # Generate a random 6-digit OTP
-    #     otp = generate_otp(5)
-        
-    #     # Save the OTP and phone number in the session
-    #     self.request.session['phone_number'] = phone_number
-    #     self.request.session['otp'] = str(otp)
 
-        # Save to database (optional)
-        # PhoneVerification.objects.update_or_create(
-        #     phone_number=phone_number,
-        #     defaults={'otp': otp, 'verified': False}
-        # )
-
-        # Send OTP via SMS using Twilio or another SMS service
-        # self.send_sms_otp(phone_number, otp)
-
-        # Redirect to OTP verification page
-        # return super().form_valid(form)
-    
-    # def send_sms_otp(self, phone_number, otp):
-    #     # Twilio credentials from settings
-    #     account_sid = settings.TWILIO_ACCOUNT_SID
-    #     auth_token = settings.TWILIO_AUTH_TOKEN
-    #     twilio_phone_number = settings.TWILIO_PHONE_NUMBER
-
-    #     # Create Twilio client
-    #     client = Client(account_sid, auth_token)
-
-    #     # Send the SMS
-    #     message = client.messages.create(
-    #         body=f"Your verification code is {otp}",
-    #         from_=twilio_phone_number,
-    #         to=phone_number
-    #     )
 class EditProfileView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,View):
     template_name='pwm/profileedit.html'
     success_url = reverse_lazy('pwm:dashboard')
@@ -142,7 +111,7 @@ class EditProfileView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,Vie
         # print(request.profile)
         profile = get_object_or_404(Profile,user=request.user)
         user_form = UserForm(instance=request.user)
-        profile_form = ProfileForm(instance=profile)
+        profile_form = ProfileEditForm(instance=profile)
         # print(profile_form)
         return render(request, self.template_name, {
             'user_form': user_form,
@@ -154,7 +123,7 @@ class EditProfileView(LoginRequiredMixin,VerifiedUserMixin,WorkingHoursMixin,Vie
         print(request.user)
         profile = get_object_or_404(Profile,user=request.user)
         user_form = UserForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(data=request.POST,files=request.FILES, instance=profile)
+        profile_form = ProfileEditForm(data=request.POST,files=request.FILES, instance=profile)
         print(f"profile validation is: {profile_form.is_valid()}")
 
         if  profile_form.is_valid():
@@ -217,7 +186,7 @@ class ProfileRegisterView(WorkingHoursMixin,View):
     def get(self, request, *args, **kwargs):
         user_id = request.session.get('user_id')
         profile = get_object_or_404(Profile,user=user_id)
-        profile_form = ProfileForm(instance=profile)
+        profile_form = ProfileRegisterForm(instance=profile)
         context = {
             'profile_form': profile_form
         }
@@ -226,7 +195,7 @@ class ProfileRegisterView(WorkingHoursMixin,View):
     def post(self, request, *args, **kwargs):
         user_id = request.session.get('user_id')
         profile = get_object_or_404(Profile,user=user_id)
-        profile_form = ProfileForm(data=request.POST,instance=profile)
+        profile_form = ProfileRegisterForm(data=request.POST,instance=profile)
 
         if profile_form.is_valid():
             profile = profile_form.save()
@@ -271,7 +240,7 @@ class UserStatusView(LoginRequiredMixin,WorkingHoursMixin,View):
     
     def get(self,request,*args, **kwargs):
         profile = get_object_or_404(Profile,user=request.user)
-        # profile_form = ProfileUserForm()
+        
         # server = get_object_or_404(WinServer,is_ldap=True)
         server_form  = UserStatusForm(instance=profile)
         # ad_get_user_account_status(ldap_server=f"ldaps://{server.ip}:{server.port}",domain= server.ldap_domain,

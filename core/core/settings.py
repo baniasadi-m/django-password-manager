@@ -28,6 +28,10 @@ DEBUG = bool(int(environ.get('DJANGO_DEBUG','1')))
 
 ALLOWED_HOSTS = ['localhost','0.0.0.0','127.0.0.1']
 
+SMS_URL = environ.get('SMS_URL','https://siagh-api.razavi.ir/api/SMS/SendMessage')
+SMS_KEY= environ.get('SMS_KEY',"yf@c4ywn7MZjr2rs#ASk8HqwHqHH4yk3Kgmnf")
+SMS_USER= environ.get('SMS_USER','mfa')
+
 
 # Application definition
 

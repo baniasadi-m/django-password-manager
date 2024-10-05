@@ -4,7 +4,8 @@ from datetime import datetime
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect,render,HttpResponse
 from django.contrib.auth.mixins import AccessMixin
-
+from django.contrib import messages
+import requests,json
 
 import ldap3
 from ldap3 import Server, Connection, ALL, SUBTREE, MODIFY_REPLACE
@@ -12,6 +13,35 @@ import ssl
 import logging
 
 import winrm
+
+def send_sms(url,apiuser,apikey,provider,destination,message,subject,description):
+    headers = {
+        'accept': 'text/plain',
+        'Content-Type': 'application/json-patch+json',
+    }
+    data ={
+        "apiUser":f"{apiuser}",
+        "apiKey":f"{apikey}",
+        "provider":f"{provider}",
+        "subject":f"{subject}",
+        "description": f"{description}",
+        "messages":[f"{message}"],
+        "mobiles":[f"{destination}"]
+        }
+  
+
+    try:
+        
+        result = requests.post(url=url,headers=headers,data=json.dumps(data),verify=False,timeout=200).json()
+        return result
+    except requests.exceptions.SSLError as ssl_err:
+        print('SSL Error:', ssl_err)
+    except requests.exceptions.JSONDecodeError as json_err:
+        print("JSON Error:",json_err)
+    except requests.exceptions.RequestException as e:
+        print('Request Error:', e)
+
+
 
 def reset_local_user_password(remote_host, admin_user, admin_password, target_user, new_password):
     """
@@ -282,7 +312,8 @@ class VerifiedUserMixin:
 
         if not request.user.is_verified:
             # If the user is not verified, return a forbidden response or redirect
-            return HttpResponseForbidden("You must verify your account to access this page.")
+            messages.add_message(request,messages.ERROR,'You must verify your account to access this page')
+            return redirect('pwm:dashboard')
         
         # If everything is fine, proceed with the request
         return super().dispatch(request, *args, **kwargs)
@@ -301,9 +332,7 @@ def generate_otp(number_of_digits):
     otp = ''.join(choice(string.digits) for _ in range(number_of_digits))
     return otp
 
-def send_sms(_from,to,msg):
-    return True
-    
+   
 def user_allowed(request,usergroup=[]):
     for g in usergroup:
         if request.user.groups.filter(name=f"{g}").exists():
