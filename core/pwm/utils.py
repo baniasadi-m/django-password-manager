@@ -46,6 +46,7 @@ def send_sms(url,apiuser,apikey,provider,destination,message,subject,description
 def reset_local_user_password(remote_host, admin_user, admin_password, target_user, new_password):
     """
     Run in window cmd: winrm set winrm/config/service @{AllowUnencrypted="true"}
+                       winrm set winrm/config/service/auth @{Basic="true"} 
     Resets the password for a local user on a remote Windows machine.
 
     :param remote_host: IP or hostname of the remote Windows machine
