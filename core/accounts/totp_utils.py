@@ -14,7 +14,7 @@ def get_totp_code(secret):
 
 def verify_totp_code(secret, code):
     totp = pyotp.TOTP(secret)
-    return totp.verify(code)
+    return totp.verify(code, valid_window=2)
 
 def generate_qr_code(username, secret):
     totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(username, issuer_name="AQRpwm")
